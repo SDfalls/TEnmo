@@ -14,7 +14,6 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@PreAuthorize("isAuthenticated()")
 public class AccountController {
 
     @Autowired

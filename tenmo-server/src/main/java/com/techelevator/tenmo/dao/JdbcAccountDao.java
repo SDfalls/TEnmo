@@ -25,7 +25,7 @@ public class JdbcAccountDao implements AccountDao {
     //gets balance from userId
     @Override
     public BigDecimal getBalance(int userId) {
-        String sqlString = "SELECT balance FROM accounts WHERE user_id = ?";
+        String sqlString = "SELECT balance FROM account WHERE user_id = ?";
         SqlRowSet results = null;
         BigDecimal balance = null;
         try {
@@ -45,7 +45,7 @@ public class JdbcAccountDao implements AccountDao {
         Account account = findAccountById(id);
         BigDecimal newBalance = account.getBalance().add(amountToAdd);
         System.out.println(newBalance);
-        String sqlString = "UPDATE accounts SET balance = ? WHERE user_id = ?";
+        String sqlString = "UPDATE account SET balance = ? WHERE user_id = ?";
         try {
             jdbcTemplate.update(sqlString, newBalance, id);
         } catch (DataAccessException e) {
@@ -59,7 +59,7 @@ public class JdbcAccountDao implements AccountDao {
     public BigDecimal subtractFromBalance(BigDecimal amountToSubtract, int id) {
         Account account = findAccountById(id);
         BigDecimal newBalance = account.getBalance().subtract(amountToSubtract);
-        String sqlString = "UPDATE accounts SET balance = ? WHERE user_id = ?";
+        String sqlString = "UPDATE account SET balance = ? WHERE user_id = ?";
         try {
             jdbcTemplate.update(sqlString, newBalance, id);
         } catch (DataAccessException e) {
@@ -71,7 +71,7 @@ public class JdbcAccountDao implements AccountDao {
     //select account from UserId
     @Override
     public Account findUserById(int userId) {
-        String sqlString = "SELECT * FROM accounts WHERE user_id = ?";
+        String sqlString = "SELECT * FROM account WHERE user_id = ?";
         Account account = null;
         try {
             SqlRowSet result = jdbcTemplate.queryForRowSet(sqlString, userId);
@@ -85,7 +85,7 @@ public class JdbcAccountDao implements AccountDao {
     @Override
     public Account findAccountById(int id) {
         Account account = null;
-        String sql = "SELECT * FROM accounts WHERE account_id = ?";
+        String sql = "SELECT * FROM account WHERE account_id = ?";
         SqlRowSet results = jdbcTemplate.queryForRowSet(sql, id);
         if (results.next()) {
             account = mapRowToAccount(results);
