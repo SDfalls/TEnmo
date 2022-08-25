@@ -2,6 +2,7 @@ package com.techelevator.tenmo.services;
 
 import com.techelevator.tenmo.model.Account;
 import com.techelevator.tenmo.model.AuthenticatedUser;
+import com.techelevator.tenmo.model.User;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -34,15 +35,25 @@ public class AccountService {
         }
         return balance;
     }
-    public List<Account> listAccounts(AuthenticatedUser currentUser) {
-        List<Account> accountList = null;
+    public List<User> listUsers(AuthenticatedUser currentUser) {
+        List<User> userList = null;
         try {
-            Account[] accounts = restTemplate.exchange(BASE_URL + "accounts", HttpMethod.GET, makeAuthEntity(currentUser), Account[].class).getBody();
-            accountList = Arrays.asList(accounts);
+            User[] accounts = restTemplate.exchange(BASE_URL + "listusers", HttpMethod.GET, makeAuthEntity(currentUser),User[].class).getBody();
+            userList = Arrays.asList(accounts);
         } catch (RestClientResponseException e) {
-            System.out.println("Error getting account: "+e.getMessage());
+            System.out.println("Error getting users: "+e.getMessage());
         }
-        return accountList;
+        return userList;
+    }
+
+    public Account getAccountByUserId(AuthenticatedUser currentUser) {
+        Account account = new Account();
+        try {
+            account = restTemplate.exchange(BASE_URL + "account?user_id="+currentUser.getUser().getId(), HttpMethod.GET, makeAuthEntity(currentUser), Account.class).getBody();
+        } catch (RestClientResponseException e) {
+            System.out.println("Error getting account");
+        }
+        return account;
     }
 
 

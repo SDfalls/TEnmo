@@ -1,9 +1,6 @@
 package com.techelevator.tenmo;
 
-import com.techelevator.tenmo.model.Account;
-import com.techelevator.tenmo.model.AuthenticatedUser;
-import com.techelevator.tenmo.model.Transfer;
-import com.techelevator.tenmo.model.UserCredentials;
+import com.techelevator.tenmo.model.*;
 import com.techelevator.tenmo.services.AccountService;
 import com.techelevator.tenmo.services.AuthenticationService;
 import com.techelevator.tenmo.services.ConsoleService;
@@ -17,10 +14,11 @@ public class App {
     private static final String API_BASE_URL = "http://localhost:8080/";
 
     private final ConsoleService consoleService = new ConsoleService();
-    private final AuthenticationService authenticationService = new AuthenticationService(API_BASE_URL);
-    private final AccountService accountService = new AccountService(API_BASE_URL);
-    private final TransferService transfersService = new TransferService(API_BASE_URL);
     private AuthenticatedUser currentUser;
+
+    private final AuthenticationService authenticationService = new AuthenticationService(API_BASE_URL);
+    private final AccountService accountService = new AccountService(API_BASE_URL, currentUser);
+    private final TransferService transfersService = new TransferService(API_BASE_URL,currentUser);
 
     public static void main(String[] args) {
         App app = new App();
@@ -104,18 +102,18 @@ public class App {
     }
 
     private void viewTransferHistory() {
-        // TODO Auto-generated method stub
-        List<Transfer> transfersList = TransferService.getTransferHistory(AuthenticatedUser currentUser);
-        for (Transfer transfers : transfersList) {
-            String output = Integer.toString(transfers.getTransfer_id());
-            if (transfers.getAccount_from()) {
-                output += " To: " + transfers.getAccount_to();
-            } else {
-                output += " From: " + transfers.getAccount_from();
-            }
-            output += " $" + transfers.getAmount();
-            System.out.println(output);
-        }
+//         TODO Auto-generated method stub
+//        List<Transfer> transfersList = transfersService.getTransferHistory(currentUser);
+//        for (Transfer transfers : transfersList) {
+//            String output = Integer.toString(transfers.getTransfer_id());
+//            if (transfers.getAccount_from()) {
+//                output += " To: " + transfers.getAccount_to();
+//            } else {
+//                output += " From: " + transfers.getAccount_from();
+//            }
+//            output += " $" + transfers.getAmount();
+//            System.out.println(output);
+//        }
     }
 
     private void viewPendingRequests() {
@@ -124,13 +122,16 @@ public class App {
     }
 
     private void sendBucks() {
-        List<Account> accountList = AccountService.listAccounts(currentUser);
+        AccountService as = new AccountService(API_BASE_URL, currentUser);
+        TransferService transferService = new TransferService(API_BASE_URL,currentUser);
+        List<User> usersList = as.listUsers(currentUser);
 
         long currentuserIndex = -1;
 
 
-        for (int i = 0; i < accountList.size(); i++) {
-            if (accountList.get(i).getUserId() == currentUser.getUser().getId()) {
+
+        for (int i = 0; i < usersList.size(); i++) {
+            if (usersList.get(i).getId() == currentUser.getUser().getId()) {
                 currentuserIndex = i;
                 continue;
             }
@@ -138,24 +139,31 @@ public class App {
             if (currentuserIndex != -1) {
                 displayIndex--;
             }
-            System.out.println(displayIndex + ": " + accountList.get(i).getUserId());
+            System.out.println(displayIndex + ": " + usersList.get(i).getUsername());
         }
         int selection = consoleService.promptForInt("Select user: ") - 1;
         if (selection >= currentuserIndex) {
+            BigDecimal amountToTransfer = consoleService.promptForBigDecimal("Enter the amount to transfer: ");
+            transferService.sendTransaction(currentUser,as.getAccountByUserId(currentUser).getAccountId(), selection,amountToTransfer);
 
             selection++;
+
         }
-        if (selection < 0 || selection >= accountList.size()) {
+        if (selection < 0 || selection >= usersList.size()) {
             System.out.println("Invalid selection");
-            return;
+        }
+
+
+
+
 
 
         }
 
-        //private void requestBucks() {
+        private void requestBucks() {
             // TODO Auto-generated method stub
 
         }
 
-    }
+
 }

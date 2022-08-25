@@ -41,17 +41,13 @@ public class JdbcAccountDao implements AccountDao {
 
     //increases balance
     @Override
-    public BigDecimal addToBalance(BigDecimal amountToAdd, int id) {
-        Account account = findAccountById(id);
-        BigDecimal newBalance = account.getBalance().add(amountToAdd);
-        System.out.println(newBalance);
+    public void updateBalance(BigDecimal newAmount, int id) {
         String sqlString = "UPDATE account SET balance = ? WHERE user_id = ?";
         try {
-            jdbcTemplate.update(sqlString, newBalance, id);
+            jdbcTemplate.update(sqlString, newAmount, id);
         } catch (DataAccessException e) {
             System.out.println("Error accessing data");
         }
-        return account.getBalance();
     }
 
     //decreased balance
@@ -59,7 +55,7 @@ public class JdbcAccountDao implements AccountDao {
     public BigDecimal subtractFromBalance(BigDecimal amountToSubtract, int id) {
         Account account = findAccountById(id);
         BigDecimal newBalance = account.getBalance().subtract(amountToSubtract);
-        String sqlString = "UPDATE account SET balance = ? WHERE user_id = ?";
+        String sqlString = "UPDATE account SET balance = ? WHERE account_id = ?";
         try {
             jdbcTemplate.update(sqlString, newBalance, id);
         } catch (DataAccessException e) {
@@ -75,9 +71,12 @@ public class JdbcAccountDao implements AccountDao {
         Account account = null;
         try {
             SqlRowSet result = jdbcTemplate.queryForRowSet(sqlString, userId);
-            account = mapRowToAccount(result);
+            if (result.next()) {
+                account = mapRowToAccount(result);
+            }
+
         } catch (DataAccessException e) {
-            System.out.println("Error accessing data");
+            System.out.println("Error accessing data" + e.getMessage());
         }
         return account;
     }

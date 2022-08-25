@@ -42,8 +42,8 @@ public class TransferService {
         transfersAccount = restTemplate.exchange(BASE_URL + "transfer/" + accountId, HttpMethod.GET, makeAuthEntity(currentUser), Transfer[].class).getBody();
         return transfersAccount;
     }
-    public Integer sendTransaction(AuthenticatedUser currentUser, int fromAccountId, int toAccountId, BigDecimal amountToSend) {
-        Integer transferId = null;
+    public void sendTransaction(AuthenticatedUser currentUser, int fromAccountId, int toAccountId, BigDecimal amountToSend) {
+//        Integer transferId = null;
 
         Transfer transfers = new Transfer();
         transfers.setAmount(amountToSend);
@@ -55,13 +55,23 @@ public class TransferService {
         HttpEntity<Transfer> entity = new HttpEntity<>(transfers, headers);
 
         try {
-            transferId = restTemplate.exchange(BASE_URL+"/transfer/send", HttpMethod.POST, entity, Integer.class).getBody();
+//            transferId =
+                    restTemplate.exchange(BASE_URL+"/transfer/send", HttpMethod.POST, entity, Integer.class).getBody();
         } catch (RestClientResponseException e) {
             System.out.println("An error occurred when sending transfer: "+e.getMessage());
         }
 
-        return transferId;
+//        return transferId;
 
+
+    }
+
+    public void addToAccount(AuthenticatedUser currentUser, BigDecimal amount) {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(currentUser.getToken());
+        HttpEntity<Transfer> entity = new HttpEntity<>(, headers);
+        restTemplate.exchange(BASE_URL + "transfer/addToBalance", HttpMethod.PUT, entity, BigDecimal.class).getBody();
 
     }
     private HttpEntity<Void> makeAuthEntity(AuthenticatedUser currentUser) {
