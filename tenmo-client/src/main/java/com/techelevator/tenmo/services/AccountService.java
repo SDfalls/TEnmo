@@ -46,10 +46,10 @@ public class AccountService {
         return userList;
     }
 
-    public Account getAccountByUserId(AuthenticatedUser currentUser) {
+    public Account getAccountByUserId(int id) {
         Account account = new Account();
         try {
-            account = restTemplate.exchange(BASE_URL + "account?user_id="+currentUser.getUser().getId(), HttpMethod.GET, makeAuthEntity(currentUser), Account.class).getBody();
+            account = restTemplate.exchange(BASE_URL + "account?user_id="+ id, HttpMethod.GET, makeAuthEntity(currentUser), Account.class).getBody();
         } catch (RestClientResponseException e) {
             System.out.println("Error getting account");
         }

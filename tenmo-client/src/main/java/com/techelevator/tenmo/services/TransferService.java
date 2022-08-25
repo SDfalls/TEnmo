@@ -2,10 +2,12 @@ package com.techelevator.tenmo.services;
 
 import com.techelevator.tenmo.model.AuthenticatedUser;
 import com.techelevator.tenmo.model.Transfer;
+import com.techelevator.util.BasicLogger;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
@@ -66,14 +68,20 @@ public class TransferService {
 
     }
 
-    public void addToAccount(AuthenticatedUser currentUser, BigDecimal amount) {
+    public void changeAccountBalance(AuthenticatedUser currentUser, BigDecimal amount, int accountId) {
+        HttpEntity entity = makeAuthEntity(currentUser);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(currentUser.getToken());
-        HttpEntity<Transfer> entity = new HttpEntity<>(, headers);
-        restTemplate.exchange(BASE_URL + "transfer/addToBalance", HttpMethod.PUT, entity, BigDecimal.class).getBody();
-
+        boolean success = false;
+        try {
+            restTemplate.exchange(BASE_URL +  "transfer/addToBalance?amountToAdd=" + amount + "&accountId=" + accountId, HttpMethod.PUT, entity, Integer.class);
+            success = true;
+        } catch (RestClientResponseException e) {
+            BasicLogger.log(e.getRawStatusCode() + " : " + e.getStatusText());
+        } catch (ResourceAccessException e) {
+            BasicLogger.log(e.getMessage());
+        }
     }
+
     private HttpEntity<Void> makeAuthEntity(AuthenticatedUser currentUser) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(currentUser.getToken());

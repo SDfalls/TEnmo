@@ -42,7 +42,7 @@ public class JdbcAccountDao implements AccountDao {
     //increases balance
     @Override
     public void updateBalance(BigDecimal newAmount, int id) {
-        String sqlString = "UPDATE account SET balance = ? WHERE user_id = ?";
+        String sqlString = "UPDATE account SET balance = ? WHERE account_id = ?";
         try {
             jdbcTemplate.update(sqlString, newAmount, id);
         } catch (DataAccessException e) {

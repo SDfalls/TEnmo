@@ -40,9 +40,10 @@ public class TransferController {
         return TransferDao.getAllTransfersByAccountId(id);
     }
     @RequestMapping(path = "addToBalance", method = RequestMethod.PUT)
-    public void updateBalance(@RequestParam BigDecimal amountToAdd, int accountId) {
-        accountDao.updateBalance(amountToAdd,accountId);
+    public void updateBalance(@RequestParam BigDecimal newBalance, int accountId) {
+        accountDao.updateBalance(newBalance,accountId);
     }
+
 
 
     @RequestMapping(path = "substractFromBalance", method = RequestMethod.PUT)

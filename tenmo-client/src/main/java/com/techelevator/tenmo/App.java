@@ -7,7 +7,10 @@ import com.techelevator.tenmo.services.ConsoleService;
 import com.techelevator.tenmo.services.TransferService;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class App {
 
@@ -127,6 +130,7 @@ public class App {
         List<User> usersList = as.listUsers(currentUser);
 
         long currentuserIndex = -1;
+        Map<Integer, User> numbersToSelect = new HashMap<>();
 
 
 
@@ -139,12 +143,16 @@ public class App {
             if (currentuserIndex != -1) {
                 displayIndex--;
             }
+            numbersToSelect.put(displayIndex,usersList.get(i));
             System.out.println(displayIndex + ": " + usersList.get(i).getUsername());
         }
         int selection = consoleService.promptForInt("Select user: ") - 1;
         if (selection >= currentuserIndex) {
+
             BigDecimal amountToTransfer = consoleService.promptForBigDecimal("Enter the amount to transfer: ");
-            transferService.sendTransaction(currentUser,as.getAccountByUserId(currentUser).getAccountId(), selection,amountToTransfer);
+            Account account = as.getAccountByUserId(numbersToSelect.get(selection);
+            transferService.changeAccountBalance(currentUser,amountToTransfer,account.getAccountId());
+//            transferService.sendTransaction(currentUser,as.getAccountByUserId(currentUser.getUser().getId()).getAccountId(), selection,amountToTransfer);
 
             selection++;
 
