@@ -12,8 +12,5 @@ public interface TransferDao {
    public List<Transfer> getAllTransfersByAccountId(int accountId);
 
 
-
-
-
-
+    void updateStatus(int transferId, int transferStatus);
 }

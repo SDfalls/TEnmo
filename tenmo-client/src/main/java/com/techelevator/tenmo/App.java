@@ -99,6 +99,10 @@ public class App {
         }
     }
 
+//    private void transferMenu() {
+//
+//    }
+
     private void viewCurrentBalance() {
         // TODO Auto-generated method stub
         try {
@@ -110,26 +114,72 @@ public class App {
 
     private void viewTransferHistory() {
 //         TODO Auto-generated method stub
+        //WE SHOULD MAKE IT TO ALREADY RETURN ONE ACCOUNT TRANSFERS RATHER THAN ALL ACCOUNTS TRANSFERS
+        //SHOULD NOT RETURN PENDING ONES ???
         List<Transfer> transfersList = transfersService.getTransferHistory();
         for (Transfer transfers : transfersList) {
-            String output = Integer.toString(transfers.getTransfer_id());
+            String output = "";
             if (transfers.getAccount_from()==currentUserAccount.getAccountId()) {
-                output += " To: " + transfers.getAccount_to();
-            } else {
-                output += " From: " + transfers.getAccount_from();
+                output += "Transfer ID: " + transfers.getTransfer_id();
+                output += " To: "
+                        + accountService.getUserById(accountService.getAccountById((transfers.getAccount_to())).getUserId()).getUsername();
+            } else if (transfers.getAccount_to()==currentUserAccount.getAccountId()){
+                output += "Transfer ID: " + transfers.getTransfer_id();
+                output += " From: " + accountService.getUserById(accountService.getAccountById((transfers.getAccount_from())).getUserId()).getUsername();
             }
-            output += " $" + transfers.getAmount();
+            output += " Amount: $" + transfers.getAmount();
             System.out.println(output);
         }
     }
 
     private void viewPendingRequests() {
         // TODO Auto-generated method stub
+        //SAME ISSUE AS WITH TRANSFER HISTORY
+        List<Transfer> transfersList = transfersService.getTransferHistory();
+        Map<Integer, Transfer> pendingRequests = new HashMap<>();
+        System.out.println("Pending Requests: ");
+        int i=1;
+        for (Transfer transfers : transfersList) {
+            String output = i + ": ";
+            if (transfers.getAccount_to() == currentUserAccount.getAccountId() && transfers.getTransfer_status_id() == 1) {
+                output += "Transfer ID: " + transfers.getTransfer_id();
+                output += " From: " + accountService.getUserById(accountService.getAccountById((transfers.getAccount_from())).getUserId()).getUsername();
+            }else{
+                continue;
+            }
+            output += " Amount: $" + transfers.getAmount();
+            System.out.println(output);
+            pendingRequests.put(i,transfers);
+            i++;
+        }
+        if(pendingRequests.size()>0) {
+            String updateRequest = consoleService.promptForString("Would you like to update any request? (Yes/No) :");
+            if (updateRequest.equalsIgnoreCase("Yes")) {
+                int transferToUpdate = consoleService.promptForInt("Please choose a transfer: ");
 
+                System.out.println("1: Accept \n2: Reject");
+                int transferStatus = consoleService.promptForInt("Please choose an option: ");
+                String tStatusString = "";
+
+                if (transferStatus == 1) {
+                    tStatusString += "Approved";
+                } else if (transferStatus == 2) {
+                    tStatusString += "Rejected";
+                } else {
+                    System.out.println("Invalid Selection");
+                }
+                if (!tStatusString.isEmpty()) {
+                    Transfer transfer = pendingRequests.get(transferToUpdate);
+                    transfersService.updateTransferStatus(transfer.getTransfer_id(), tStatusString);
+                    System.out.println("Transaction completed! Transfer has been " + tStatusString + " successfully");
+                }
+            }
+        }else{
+            System.out.println("You have no pending requests");
+        }
     }
 
     private void sendBucks() {
-//        NEED TO MAKE IT POST A NEW TRANSFER
         List<User> usersList = this.accountService.listUsers(currentUser);
         long currentuserIndex = -1;
         Map<Integer, User> numbersToSelect = new HashMap<>();
@@ -149,35 +199,70 @@ public class App {
             System.out.println(displayIndex + ": " + usersList.get(i).getUsername());
         }
         int selection = consoleService.promptForInt("Select user: ") ;
-        if (selection > 0 && selection<numbersToSelect.size()) {
+        if (selection > 0 && selection<=numbersToSelect.size()) {
 
             BigDecimal amountToTransfer = consoleService.promptForBigDecimal("Enter the amount to transfer: ");
+            //Checking if balance is greater or equal to amount to transfer
+            if ((currentUserAccount.getBalance().compareTo(amountToTransfer))>= 0) {
 
-            Account accountToTransfer =
-                    this.accountService.getAccountByUserId(numbersToSelect.get(selection).getId());
-            BigDecimal receiverNewBalance = accountToTransfer.getBalance().add(amountToTransfer);
-            BigDecimal senderNewBalance = currentUserAccount.getBalance().subtract(amountToTransfer);
-            ///IM NOT SURE IF THIS IS NEEDED
-//            accountToTransfer.setBalance(newBalance);
-            this.transfersService.changeAccountBalance(senderNewBalance,currentUserAccount.getAccountId());
+                Account accountToTransfer =
+                        this.accountService.getAccountByUserId(numbersToSelect.get(selection).getId());
+                BigDecimal receiverNewBalance = accountToTransfer.getBalance().add(amountToTransfer);
+                BigDecimal senderNewBalance = currentUserAccount.getBalance().subtract(amountToTransfer);
+                //Changing the balance of the current user locally, this will prevent them from going over their balance to transfer while the app is open.
+                accountToTransfer.setBalance(senderNewBalance);
+                this.transfersService.changeAccountBalance(senderNewBalance, currentUserAccount.getAccountId());
 
-            this.transfersService.changeAccountBalance(receiverNewBalance,accountToTransfer.getAccountId());
+                this.transfersService.changeAccountBalance(receiverNewBalance, accountToTransfer.getAccountId());
 
-            int transferNumber = transfersService.createTransferTransaction(currentUserAccount.getAccountId(),
-                    accountToTransfer.getAccountId(),amountToTransfer,"Send","Approved");
-            System.out.println("Transaction completed successfully, transfer ID: " + transferNumber);
+                //sendingBucks will always be approved
+                int transferNumber = transfersService.createTransferTransaction(currentUserAccount.getAccountId(),
+                        accountToTransfer.getAccountId(), amountToTransfer, "Send", "Approved");
+                System.out.println("Transaction completed successfully, transfer ID: " + transferNumber);
+            } else {
+                System.out.println("Sorry you do not posses enough funds.");
+            }
 
 
-            selection++;
 
-        }
-        if (selection < 0 || selection >= usersList.size()) {
+        }else{
             System.out.println("Invalid selection");
         }
     }
 
         private void requestBucks() {
             // TODO Auto-generated method stub
+            List<User> usersList = this.accountService.listUsers(currentUser);
+            long currentuserIndex = -1;
+            Map<Integer, User> numbersToSelect = new HashMap<>();
+
+            for (int i = 0; i < usersList.size(); i++) {
+                if (usersList.get(i).getId() == currentUser.getUser().getId()) {
+                    currentuserIndex = i;
+                    continue;
+                }
+                int displayIndex = i + 1;
+                if (currentuserIndex != -1) {
+                    displayIndex--;
+                }
+                numbersToSelect.put(displayIndex,usersList.get(i));
+                System.out.println(displayIndex + ": " + usersList.get(i).getUsername());
+            }
+            int selection = consoleService.promptForInt("Select user: ") ;
+            if (selection > 0 && selection<=numbersToSelect.size()) {
+
+                BigDecimal transferAmount = consoleService.promptForBigDecimal("Enter the amount to request: ");
+
+                Account accountToTransfer =
+                        this.accountService.getAccountByUserId(numbersToSelect.get(selection).getId());
+
+                int transferNumber = transfersService.createTransferTransaction(currentUserAccount.getAccountId(),
+                        accountToTransfer.getAccountId(), transferAmount, "Request", "Pending");
+                System.out.println("Transaction request completed successfully, transfer ID: " + transferNumber);
+
+            }else {
+                System.out.println("Invalid selection");
+            }
 
         }
 

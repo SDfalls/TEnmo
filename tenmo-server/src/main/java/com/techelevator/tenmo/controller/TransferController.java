@@ -47,6 +47,10 @@ public class TransferController {
     public List<Transfer>ListAllTransfersByID(@PathVariable int id){
         return transferDao.getAllTransfersByAccountId(id);
     }
+    @RequestMapping(method = RequestMethod.PUT)
+    public void updateStatus(@RequestParam int transferId, int transferStatus) {
+        transferDao.updateStatus(transferId,transferStatus);
+    }
     @RequestMapping(path = "updateBalance", method = RequestMethod.PUT)
     public void updateBalance(@RequestParam BigDecimal newBalance, int accountId) {
         accountDao.updateBalance(newBalance,accountId);

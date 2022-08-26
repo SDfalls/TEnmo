@@ -62,6 +62,14 @@ public class TransferService {
         }
         return transferNumber;
     }
+    public void updateTransferStatus (int transferId, String status) {
+        try {
+             restTemplate.exchange(BASE_URL+"transfer?transferId="+ transferId + "&transferStatus=" + transferStatus(status),
+                     HttpMethod.PUT, makeAuthEntity(this.currentUser), Integer.class);
+        } catch (RestClientResponseException e) {
+            System.out.println("An error occurred while updating transfer transaction "+e.getMessage());
+        }
+    }
 
     public void changeAccountBalance( BigDecimal amount, int accountId) {
         HttpEntity entity = makeAuthEntity(this.currentUser);

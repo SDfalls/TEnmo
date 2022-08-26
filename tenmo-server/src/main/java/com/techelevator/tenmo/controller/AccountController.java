@@ -38,8 +38,21 @@ public class AccountController {
         return users;
     }
     @RequestMapping(path = "account", method = RequestMethod.GET)
-    public Account getAccountByUserId(@RequestParam int user_id) {
-        return accountDao.findUserById(user_id);
+    public Account getAccountByUserId(@RequestParam int user_id, int account_id) {
+        if (user_id!=0){
+            return accountDao.findUserById(user_id);
+        } else if (account_id!=0) {
+            return accountDao.findAccountById(account_id);
+        }
+        return null;
     }
+
+
+    @RequestMapping(path = "user", method = RequestMethod.GET)
+    public User getUserById(@RequestParam int user_id) {
+        return userDao.findById(user_id);
+    }
+
+
 
 }
