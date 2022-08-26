@@ -12,6 +12,7 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.sql.SQLOutput;
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,13 +28,16 @@ public class TransferService {
         this.currentUser = currentUser;
         BASE_URL = url;
     }
-    public List<Transfer> getTransferHistory(AuthenticatedUser currentUser) {
+    public List<Transfer> getTransferHistory() {
         List<Transfer> transfersList = null;
         try {
             Transfer[] transfers = restTemplate.exchange(BASE_URL + "/transfer", HttpMethod.GET, makeAuthEntity(currentUser), Transfer[].class).getBody();
             transfersList = Arrays.asList(transfers);
         } catch (RestClientResponseException e) {
             System.out.println("Error getting transfers: " + e.getMessage());
+        }
+        if (transfersList.size()==0){
+            System.out.println("Uh oh, it looks like you have not made any transfer transactions");
         }
         return transfersList;
     }
@@ -44,37 +48,33 @@ public class TransferService {
         transfersAccount = restTemplate.exchange(BASE_URL + "transfer/" + accountId, HttpMethod.GET, makeAuthEntity(currentUser), Transfer[].class).getBody();
         return transfersAccount;
     }
-    public void sendTransaction(AuthenticatedUser currentUser, int fromAccountId, int toAccountId, BigDecimal amountToSend) {
+    public void createTransferTransaction(int fromAccountId, int toAccountId, BigDecimal amountToSend) {
 //        Integer transferId = null;
 
-        Transfer transfers = new Transfer();
-        transfers.setAmount(amountToSend);
-        transfers.setAccount_from(fromAccountId);
-        transfers.setAccount_to(toAccountId);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(currentUser.getToken());
-        HttpEntity<Transfer> entity = new HttpEntity<>(transfers, headers);
+        Transfer transfer = new Transfer();
+        transfer.setAmount(amountToSend);
+        transfer.setAccount_from(fromAccountId);
+        transfer.setAccount_to(toAccountId);
+        // JUST TO SEE WHAT HAPPENS
+        transfer.setTransfer_id(1);
+        transfer.setTransfer_type_id(1);
 
         try {
-//            transferId =
-                    restTemplate.exchange(BASE_URL+"/transfer/send", HttpMethod.POST, entity, Integer.class).getBody();
+            restTemplate.exchange(BASE_URL+"transfer/createTransfer", HttpMethod.PUT, makeAuthEntity(this.currentUser), Integer.class, transfer);
         } catch (RestClientResponseException e) {
-            System.out.println("An error occurred when sending transfer: "+e.getMessage());
+            System.out.println("An error occurred while creating transfer transaction "+e.getMessage());
         }
 
-//        return transferId;
+
 
 
     }
 
-    public void changeAccountBalance(AuthenticatedUser currentUser, BigDecimal amount, int accountId) {
-        HttpEntity entity = makeAuthEntity(currentUser);
+    public void changeAccountBalance( BigDecimal amount, int accountId) {
+        HttpEntity entity = makeAuthEntity(this.currentUser);
 
-        boolean success = false;
         try {
-            restTemplate.exchange(BASE_URL +  "transfer/addToBalance?amountToAdd=" + amount + "&accountId=" + accountId, HttpMethod.PUT, entity, Integer.class);
-            success = true;
+            restTemplate.exchange(BASE_URL +  "transfer/updateBalance?newBalance=" + amount + "&accountId=" + accountId, HttpMethod.PUT, entity, Integer.class);
         } catch (RestClientResponseException e) {
             BasicLogger.log(e.getRawStatusCode() + " : " + e.getStatusText());
         } catch (ResourceAccessException e) {

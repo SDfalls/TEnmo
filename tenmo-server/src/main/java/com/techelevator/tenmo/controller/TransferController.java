@@ -14,32 +14,33 @@ import java.util.List;
 
 @RequestMapping("/transfer")
 @RestController
-
 public class TransferController {
 
-    private TransferDao TransferDao;
+    @Autowired
+    private TransferDao transferDao;
 
     @Autowired
     private AccountDao accountDao;
 
 
-    public TransferController(TransferDao transfer){this.TransferDao = transfer;}
+    public TransferController(TransferDao transfer){this.transferDao = transfer;}
 
-    @ResponseStatus(HttpStatus.CREATED)
-    @RequestMapping(path = "/send", method = RequestMethod.POST)
-    public void createTransfer(@RequestBody Transfer transfer){TransferDao.send(transfer);}
+//    @ResponseStatus(HttpStatus.CREATED)
+    @RequestMapping(path = "/createTransfer", method = RequestMethod.PUT)
+    public void createTransfer(@RequestBody Transfer transfer){
+        transferDao.createTransfer(transfer);}
 
 
     @RequestMapping(method = RequestMethod.GET)
     public List<Transfer> listAllTransfers(){
-        return TransferDao.getAllTransfers();
+        return transferDao.getAllTransfers();
     }
 
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
     public List<Transfer>ListAllTransfersByID(@PathVariable int id){
-        return TransferDao.getAllTransfersByAccountId(id);
+        return transferDao.getAllTransfersByAccountId(id);
     }
-    @RequestMapping(path = "addToBalance", method = RequestMethod.PUT)
+    @RequestMapping(path = "updateBalance", method = RequestMethod.PUT)
     public void updateBalance(@RequestParam BigDecimal newBalance, int accountId) {
         accountDao.updateBalance(newBalance,accountId);
     }

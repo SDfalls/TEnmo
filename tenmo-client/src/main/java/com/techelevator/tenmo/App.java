@@ -18,10 +18,11 @@ public class App {
 
     private final ConsoleService consoleService = new ConsoleService();
     private AuthenticatedUser currentUser;
-
+    private Account currentUserAccount;
     private final AuthenticationService authenticationService = new AuthenticationService(API_BASE_URL);
-    private final AccountService accountService = new AccountService(API_BASE_URL, currentUser);
-    private final TransferService transfersService = new TransferService(API_BASE_URL,currentUser);
+    private AccountService accountService;
+    private TransferService transfersService;
+
 
     public static void main(String[] args) {
         App app = new App();
@@ -32,7 +33,11 @@ public class App {
         consoleService.printGreeting();
         loginMenu();
         if (currentUser != null) {
+            accountService = new AccountService(API_BASE_URL, currentUser);
+            transfersService = new TransferService(API_BASE_URL,currentUser);
+            currentUserAccount = accountService.getAccountByUserId(currentUser.getUser().getId());
             mainMenu();
+
         }
     }
 
@@ -96,9 +101,8 @@ public class App {
 
     private void viewCurrentBalance() {
         // TODO Auto-generated method stub
-        AccountService as = new AccountService(API_BASE_URL, currentUser);
         try {
-            as.getBalance();
+            accountService.getBalance();
         } catch (NullPointerException e) {
             System.out.println("No balance found");
         }
@@ -106,17 +110,17 @@ public class App {
 
     private void viewTransferHistory() {
 //         TODO Auto-generated method stub
-//        List<Transfer> transfersList = transfersService.getTransferHistory(currentUser);
-//        for (Transfer transfers : transfersList) {
-//            String output = Integer.toString(transfers.getTransfer_id());
-//            if (transfers.getAccount_from()) {
-//                output += " To: " + transfers.getAccount_to();
-//            } else {
-//                output += " From: " + transfers.getAccount_from();
-//            }
-//            output += " $" + transfers.getAmount();
-//            System.out.println(output);
-//        }
+        List<Transfer> transfersList = transfersService.getTransferHistory();
+        for (Transfer transfers : transfersList) {
+            String output = Integer.toString(transfers.getTransfer_id());
+            if (transfers.getAccount_from()==currentUserAccount.getAccountId()) {
+                output += " To: " + transfers.getAccount_to();
+            } else {
+                output += " From: " + transfers.getAccount_from();
+            }
+            output += " $" + transfers.getAmount();
+            System.out.println(output);
+        }
     }
 
     private void viewPendingRequests() {
@@ -125,10 +129,8 @@ public class App {
     }
 
     private void sendBucks() {
-        AccountService as = new AccountService(API_BASE_URL, currentUser);
-        TransferService transferService = new TransferService(API_BASE_URL,currentUser);
-        List<User> usersList = as.listUsers(currentUser);
-
+//        NEED TO MAKE IT POST A NEW TRANSFER
+        List<User> usersList = this.accountService.listUsers(currentUser);
         long currentuserIndex = -1;
         Map<Integer, User> numbersToSelect = new HashMap<>();
 
@@ -146,13 +148,23 @@ public class App {
             numbersToSelect.put(displayIndex,usersList.get(i));
             System.out.println(displayIndex + ": " + usersList.get(i).getUsername());
         }
-        int selection = consoleService.promptForInt("Select user: ") - 1;
-        if (selection >= currentuserIndex) {
+        int selection = consoleService.promptForInt("Select user: ") ;
+        if (selection > 0 && selection<numbersToSelect.size()) {
 
             BigDecimal amountToTransfer = consoleService.promptForBigDecimal("Enter the amount to transfer: ");
-            Account account = as.getAccountByUserId(numbersToSelect.get(selection);
-            transferService.changeAccountBalance(currentUser,amountToTransfer,account.getAccountId());
-//            transferService.sendTransaction(currentUser,as.getAccountByUserId(currentUser.getUser().getId()).getAccountId(), selection,amountToTransfer);
+
+            Account accountToTransfer =
+                    this.accountService.getAccountByUserId(numbersToSelect.get(selection).getId());
+            BigDecimal receiverNewBalance = accountToTransfer.getBalance().add(amountToTransfer);
+            BigDecimal senderNewBalance = currentUserAccount.getBalance().subtract(amountToTransfer);
+            ///IM NOT SURE IF THIS IS NEEDED
+//            accountToTransfer.setBalance(newBalance);
+            this.transfersService.changeAccountBalance(senderNewBalance,currentUserAccount.getAccountId());
+
+            this.transfersService.changeAccountBalance(receiverNewBalance,accountToTransfer.getAccountId());
+// NOT WORKING YET
+//            transfersService.createTransferTransaction(currentUserAccount.getAccountId(),accountToTransfer.getAccountId(),amountToTransfer);
+
 
             selection++;
 
@@ -160,13 +172,7 @@ public class App {
         if (selection < 0 || selection >= usersList.size()) {
             System.out.println("Invalid selection");
         }
-
-
-
-
-
-
-        }
+    }
 
         private void requestBucks() {
             // TODO Auto-generated method stub

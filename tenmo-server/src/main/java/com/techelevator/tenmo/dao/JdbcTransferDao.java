@@ -19,7 +19,7 @@ public class JdbcTransferDao implements TransferDao {
 
 
     @Override
-    public void send(Transfer transfer) {
+    public void createTransfer(Transfer transfer) {
         String sql = "INSERT INTO transfer (transfer_type_id,"
                 + " transfer_status_id, account_from, account_to , amount)"
                 + " VALUES (?, ?, ?, ?, ?)";
