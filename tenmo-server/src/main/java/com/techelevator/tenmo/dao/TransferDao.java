@@ -5,7 +5,7 @@ import java.util.List;
 
 public interface TransferDao {
 
-   public void createTransfer(Transfer transfer);
+   public int createTransfer(Transfer transfer);
 
    public List<Transfer> getAllTransfers();
 

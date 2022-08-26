@@ -48,26 +48,19 @@ public class TransferService {
         transfersAccount = restTemplate.exchange(BASE_URL + "transfer/" + accountId, HttpMethod.GET, makeAuthEntity(currentUser), Transfer[].class).getBody();
         return transfersAccount;
     }
-    public void createTransferTransaction(int fromAccountId, int toAccountId, BigDecimal amountToSend) {
-//        Integer transferId = null;
+    public int createTransferTransaction(int fromAccountId, int toAccountId, BigDecimal amountToSend, String type, String status) {
+        int transferNumber = 0;
 
-        Transfer transfer = new Transfer();
-        transfer.setAmount(amountToSend);
-        transfer.setAccount_from(fromAccountId);
-        transfer.setAccount_to(toAccountId);
-        // JUST TO SEE WHAT HAPPENS
-        transfer.setTransfer_id(1);
-        transfer.setTransfer_type_id(1);
 
         try {
-            restTemplate.exchange(BASE_URL+"transfer/createTransfer", HttpMethod.PUT, makeAuthEntity(this.currentUser), Integer.class, transfer);
+           transferNumber = restTemplate.exchange(BASE_URL+"transfer/createTransfer?accountFrom="+ fromAccountId +
+                           "&accountTo=" + toAccountId + "&amount=" + amountToSend + "&transferId="+ transferType(type) + "&statusId=" +
+                   transferStatus(status), HttpMethod.POST, makeAuthEntity(this.currentUser), Integer.class).getBody();
+           return transferNumber;
         } catch (RestClientResponseException e) {
             System.out.println("An error occurred while creating transfer transaction "+e.getMessage());
         }
-
-
-
-
+        return transferNumber;
     }
 
     public void changeAccountBalance( BigDecimal amount, int accountId) {
@@ -80,6 +73,28 @@ public class TransferService {
         } catch (ResourceAccessException e) {
             BasicLogger.log(e.getMessage());
         }
+    }
+
+    private int transferType(String type) {
+        int typeNumber = 0;
+            if (type.equals("Request")) {
+                typeNumber = 1;
+            } else if (type.equals("Send")) {
+                typeNumber = 2;
+            }
+            return typeNumber;
+    }
+
+    private int transferStatus(String status) {
+        int statusNumber = 0;
+                if(status.equals("Pending")){
+                    statusNumber=1;
+                } else if (status.equals("Approved")) {
+                    statusNumber=2;
+                } else if (status.equals("Rejected")) {
+                    statusNumber=3;
+                }
+                return statusNumber;
     }
 
     private HttpEntity<Void> makeAuthEntity(AuthenticatedUser currentUser) {

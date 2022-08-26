@@ -162,8 +162,10 @@ public class App {
             this.transfersService.changeAccountBalance(senderNewBalance,currentUserAccount.getAccountId());
 
             this.transfersService.changeAccountBalance(receiverNewBalance,accountToTransfer.getAccountId());
-// NOT WORKING YET
-//            transfersService.createTransferTransaction(currentUserAccount.getAccountId(),accountToTransfer.getAccountId(),amountToTransfer);
+
+            int transferNumber = transfersService.createTransferTransaction(currentUserAccount.getAccountId(),
+                    accountToTransfer.getAccountId(),amountToTransfer,"Send","Approved");
+            System.out.println("Transaction completed successfully, transfer ID: " + transferNumber);
 
 
             selection++;

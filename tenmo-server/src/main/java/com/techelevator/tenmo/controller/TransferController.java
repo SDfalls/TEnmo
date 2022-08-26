@@ -25,10 +25,17 @@ public class TransferController {
 
     public TransferController(TransferDao transfer){this.transferDao = transfer;}
 
-//    @ResponseStatus(HttpStatus.CREATED)
-    @RequestMapping(path = "/createTransfer", method = RequestMethod.PUT)
-    public void createTransfer(@RequestBody Transfer transfer){
-        transferDao.createTransfer(transfer);}
+    @ResponseStatus(HttpStatus.CREATED)
+    @RequestMapping(path = "/createTransfer", method = RequestMethod.POST)
+    public int createTransfer(@RequestParam int accountFrom, int accountTo, BigDecimal amount, int transferId, int statusId ){
+        Transfer transfer = new Transfer();
+        transfer.setAccount_from(accountFrom);
+        transfer.setAccount_to(accountTo);
+        transfer.setAmount(amount);
+        transfer.setTransfer_type_id(transferId);
+        transfer.setTransfer_status_id(statusId);
+        return transferDao.createTransfer(transfer);
+    }
 
 
     @RequestMapping(method = RequestMethod.GET)
