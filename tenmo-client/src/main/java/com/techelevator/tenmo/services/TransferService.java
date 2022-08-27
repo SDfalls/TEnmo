@@ -31,7 +31,7 @@ public class TransferService {
     public List<Transfer> getTransferHistory() {
         List<Transfer> transfersList = null;
         try {
-            Transfer[] transfers = restTemplate.exchange(BASE_URL + "/transfer", HttpMethod.GET, makeAuthEntity(currentUser), Transfer[].class).getBody();
+            Transfer[] transfers = restTemplate.exchange(BASE_URL + "/transfer", HttpMethod.GET, makeAuthEntity(), Transfer[].class).getBody();
             transfersList = Arrays.asList(transfers);
         } catch (RestClientResponseException e) {
             System.out.println("Error getting transfers: " + e.getMessage());
@@ -43,20 +43,31 @@ public class TransferService {
     }
 
 
-    public Transfer [] getTransfersByAccountId(int accountId) {
-        Transfer[] transfersAccount;
-        transfersAccount = restTemplate.exchange(BASE_URL + "transfer/" + accountId, HttpMethod.GET, makeAuthEntity(currentUser), Transfer[].class).getBody();
-        return transfersAccount;
-    }
-    public int createTransferTransaction(int fromAccountId, int toAccountId, BigDecimal amountToSend, String type, String status) {
-        int transferNumber = 0;
-
-
+    public List<Transfer> getTransfersByAccountId(int accountId) {
+        List<Transfer> transfersbyAccount = null;
+//        transfersbyAccount = List.of(restTemplate.exchange(BASE_URL + "transfer/" + accountId, HttpMethod.GET, makeAuthEntity(), Transfer[].class).getBody());
+//        return
         try {
-           transferNumber = restTemplate.exchange(BASE_URL+"transfer/createTransfer?accountFrom="+ fromAccountId +
-                           "&accountTo=" + toAccountId + "&amount=" + amountToSend + "&transferId="+ transferType(type) + "&statusId=" +
-                   transferStatus(status), HttpMethod.POST, makeAuthEntity(this.currentUser), Integer.class).getBody();
-           return transferNumber;
+            Transfer[] transfers = restTemplate.exchange(BASE_URL + "/transfer/" + accountId, HttpMethod.GET, makeAuthEntity(), Transfer[].class).getBody();
+            transfersbyAccount = Arrays.asList(transfers);
+        } catch (RestClientResponseException e) {
+            System.out.println("Error getting transfers: " + e.getMessage());
+        }
+        if (transfersbyAccount.size() == 0) {
+            System.out.println("Uh oh, it looks like you have not made any transfer transactions");
+        }
+        return transfersbyAccount;
+    }
+    public int createTransferTransaction(int accountFromId, int accountToId, BigDecimal amount, String type, String status) {
+        int transferNumber = 0;
+        Transfer transfer = new Transfer(accountFromId,accountToId,amount,transferType(type),transferStatus(status));
+        try {
+           transferNumber = restTemplate.exchange(BASE_URL+ "transfer/createTransfer"
+
+//                   "transfer/createTransfer?accountFrom="+ fromAccountId +
+//                           "&accountTo=" + toAccountId + "&amount=" + amountToSend + "&transferId="+ transferType(type) + "&statusId=" +
+//                   transferStatus(status)
+                   , HttpMethod.POST, makeTransferEntity(transfer), Integer.class).getBody();
         } catch (RestClientResponseException e) {
             System.out.println("An error occurred while creating transfer transaction "+e.getMessage());
         }
@@ -65,14 +76,14 @@ public class TransferService {
     public void updateTransferStatus (int transferId, String status) {
         try {
              restTemplate.exchange(BASE_URL+"transfer?transferId="+ transferId + "&transferStatus=" + transferStatus(status),
-                     HttpMethod.PUT, makeAuthEntity(this.currentUser), Integer.class);
+                     HttpMethod.PUT, makeAuthEntity(), Integer.class);
         } catch (RestClientResponseException e) {
             System.out.println("An error occurred while updating transfer transaction "+e.getMessage());
         }
     }
 
     public void changeAccountBalance( BigDecimal amount, int accountId) {
-        HttpEntity entity = makeAuthEntity(this.currentUser);
+        HttpEntity entity = makeAuthEntity();
 
         try {
             restTemplate.exchange(BASE_URL +  "transfer/updateBalance?newBalance=" + amount + "&accountId=" + accountId, HttpMethod.PUT, entity, Integer.class);
@@ -104,10 +115,17 @@ public class TransferService {
                 }
                 return statusNumber;
     }
-
-    private HttpEntity<Void> makeAuthEntity(AuthenticatedUser currentUser) {
+    private HttpEntity<Transfer> makeTransferEntity(Transfer transfer){
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(currentUser.getToken());
+        headers.setBearerAuth(this.currentUser.getToken());
+        HttpEntity<Transfer> entity = new HttpEntity<>(transfer,headers);
+        return entity;
+    }
+
+
+    private HttpEntity<Void> makeAuthEntity() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(this.currentUser.getToken());
         HttpEntity<Void> entity = new HttpEntity<>(headers);
         return entity;
     }

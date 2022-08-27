@@ -46,6 +46,13 @@ public class ConsoleService {
         System.out.println();
     }
 
+    public void printTransferMenu(){
+
+    }
+    public void printInvalidSelection(){
+        System.out.println("Invalid Selection");
+    }
+
     public UserCredentials promptForCredentials() {
         String username = promptForString("Username: ");
         String password = promptForString("Password: ");

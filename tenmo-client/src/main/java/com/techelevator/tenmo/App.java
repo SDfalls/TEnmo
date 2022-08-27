@@ -114,18 +114,20 @@ public class App {
 
     private void viewTransferHistory() {
 //         TODO Auto-generated method stub
-        //WE SHOULD MAKE IT TO ALREADY RETURN ONE ACCOUNT TRANSFERS RATHER THAN ALL ACCOUNTS TRANSFERS
-        //SHOULD NOT RETURN PENDING ONES ???
-        List<Transfer> transfersList = transfersService.getTransferHistory();
+        //ADD view by transfer Id
+
+        List<Transfer> transfersList = transfersService.getTransfersByAccountId(currentUserAccount.getAccountId());
         for (Transfer transfers : transfersList) {
             String output = "";
-            if (transfers.getAccount_from()==currentUserAccount.getAccountId()) {
+            if (transfers.getAccount_from()==currentUserAccount.getAccountId()&& transfers.getTransfer_status_id()!=1) {
                 output += "Transfer ID: " + transfers.getTransfer_id();
                 output += " To: "
                         + accountService.getUserById(accountService.getAccountById((transfers.getAccount_to())).getUserId()).getUsername();
             } else if (transfers.getAccount_to()==currentUserAccount.getAccountId()){
                 output += "Transfer ID: " + transfers.getTransfer_id();
                 output += " From: " + accountService.getUserById(accountService.getAccountById((transfers.getAccount_from())).getUserId()).getUsername();
+            }else{
+                continue;
             }
             output += " Amount: $" + transfers.getAmount();
             System.out.println(output);
@@ -169,6 +171,7 @@ public class App {
                     System.out.println("Invalid Selection");
                 }
                 if (!tStatusString.isEmpty()) {
+                    //ONLY ACCEPT IF ACCOUNT HAS ENOUGH FUNDS
                     Transfer transfer = pendingRequests.get(transferToUpdate);
                     transfersService.updateTransferStatus(transfer.getTransfer_id(), tStatusString);
                     System.out.println("Transaction completed! Transfer has been " + tStatusString + " successfully");
@@ -203,7 +206,7 @@ public class App {
 
             BigDecimal amountToTransfer = consoleService.promptForBigDecimal("Enter the amount to transfer: ");
             //Checking if balance is greater or equal to amount to transfer
-            if ((currentUserAccount.getBalance().compareTo(amountToTransfer))>= 0) {
+            if ((currentUserAccount.getBalance().compareTo(amountToTransfer))>= 0 && amountToTransfer.compareTo(BigDecimal.valueOf(0))>0) {
 
                 Account accountToTransfer =
                         this.accountService.getAccountByUserId(numbersToSelect.get(selection).getId());
@@ -219,14 +222,17 @@ public class App {
                 int transferNumber = transfersService.createTransferTransaction(currentUserAccount.getAccountId(),
                         accountToTransfer.getAccountId(), amountToTransfer, "Send", "Approved");
                 System.out.println("Transaction completed successfully, transfer ID: " + transferNumber);
-            } else {
+            } else if( amountToTransfer.compareTo(BigDecimal.valueOf(0))<=0){
+                System.out.println("Amount should be greater than zero");
+
+            }else {
                 System.out.println("Sorry you do not posses enough funds.");
             }
 
 
 
         }else{
-            System.out.println("Invalid selection");
+            consoleService.printInvalidSelection();
         }
     }
 
@@ -252,16 +258,20 @@ public class App {
             if (selection > 0 && selection<=numbersToSelect.size()) {
 
                 BigDecimal transferAmount = consoleService.promptForBigDecimal("Enter the amount to request: ");
+                if( transferAmount.compareTo(BigDecimal.valueOf(0))>0) {
+                    Account accountToTransfer =
+                            this.accountService.getAccountByUserId(numbersToSelect.get(selection).getId());
 
-                Account accountToTransfer =
-                        this.accountService.getAccountByUserId(numbersToSelect.get(selection).getId());
 
-                int transferNumber = transfersService.createTransferTransaction(currentUserAccount.getAccountId(),
-                        accountToTransfer.getAccountId(), transferAmount, "Request", "Pending");
-                System.out.println("Transaction request completed successfully, transfer ID: " + transferNumber);
+                    int transferNumber = transfersService.createTransferTransaction(currentUserAccount.getAccountId(),
+                            accountToTransfer.getAccountId(), transferAmount, "Request", "Pending");
+                    System.out.println("Transaction request completed successfully, transfer ID: " + transferNumber);
+                }else {
+                    System.out.println("Amount should be greater than zero");
+                }
 
             }else {
-                System.out.println("Invalid selection");
+                consoleService.printInvalidSelection();
             }
 
         }
