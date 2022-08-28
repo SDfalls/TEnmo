@@ -7,10 +7,7 @@ import com.techelevator.tenmo.services.ConsoleService;
 import com.techelevator.tenmo.services.TransferService;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class App {
 
@@ -99,9 +96,49 @@ public class App {
         }
     }
 
-//    private void transferMenu() {
-//
-//    }
+    private void updateRequestsMenu(Map<Integer,Transfer> transfers) {
+        int menuSelection = -1;
+        while (menuSelection!=0) {
+            consoleService.printYesAndNoMenu("Would you like to update any request?");
+            menuSelection = consoleService.promptForInt("Please choose an option: ");
+            if (menuSelection == 1 ) {
+                int transferToUpdate = consoleService.promptForInt("Please choose a transfer from the list: ");
+                if(transfers.get(transferToUpdate)!=null) {
+                    consoleService.printAcceptAndRejectMenu("Would you like to accept or reject this transaction?");
+                    int acceptOrReject = consoleService.promptForInt("Please choose an option");
+
+                    String transferStatus = "";
+
+                    if (acceptOrReject == 1) {
+                        transferStatus += "Approved";
+                    } else if (acceptOrReject == 2) {
+                        transferStatus += "Rejected";
+                    } else {
+                        consoleService.printInvalidSelection();
+                    }
+                    if (!transferStatus.isEmpty()) {
+                        Transfer transfer = transfers.get(transferToUpdate);
+                        if (transfer.getAmount().compareTo(currentUserAccount.getBalance())<=0&&transferStatus.equals("Approved")) {
+                            transfersService.updateTransferStatus(transfer.getTransfer_id(), transferStatus);
+                            System.out.println("Transaction completed! Transfer has been " + transferStatus + " successfully");
+                        }else if(transferStatus.equals("Rejected")){
+                            transfersService.updateTransferStatus(transfer.getTransfer_id(), transferStatus);
+                            System.out.println("Transaction completed! Transfer has been " + transferStatus + " successfully");
+                        }else{
+                            System.out.println("I am sorry but your funds are insufficient to accept this transfer");
+                        }
+                    } else if (menuSelection==2) {
+                        System.out.println("No requests will be updated now.");
+                    }
+                    else {
+                        consoleService.printInvalidSelection();
+                    }
+                }
+            }
+        }
+    }
+
+
 
     private void viewCurrentBalance() {
         // TODO Auto-generated method stub
@@ -155,28 +192,7 @@ public class App {
             i++;
         }
         if(pendingRequests.size()>0) {
-            String updateRequest = consoleService.promptForString("Would you like to update any request? (Yes/No) :");
-            if (updateRequest.equalsIgnoreCase("Yes")) {
-                int transferToUpdate = consoleService.promptForInt("Please choose a transfer: ");
-
-                System.out.println("1: Accept \n2: Reject");
-                int transferStatus = consoleService.promptForInt("Please choose an option: ");
-                String tStatusString = "";
-
-                if (transferStatus == 1) {
-                    tStatusString += "Approved";
-                } else if (transferStatus == 2) {
-                    tStatusString += "Rejected";
-                } else {
-                    System.out.println("Invalid Selection");
-                }
-                if (!tStatusString.isEmpty()) {
-                    //ONLY ACCEPT IF ACCOUNT HAS ENOUGH FUNDS
-                    Transfer transfer = pendingRequests.get(transferToUpdate);
-                    transfersService.updateTransferStatus(transfer.getTransfer_id(), tStatusString);
-                    System.out.println("Transaction completed! Transfer has been " + tStatusString + " successfully");
-                }
-            }
+            updateRequestsMenu(pendingRequests);
         }else{
             System.out.println("You have no pending requests");
         }

@@ -45,12 +45,27 @@ public class ConsoleService {
         System.out.println("0: Exit");
         System.out.println();
     }
+    public void printYesAndNoMenu(String prompt){
+        System.out.println();
+        System.out.println(prompt);
+        System.out.println("1: Yes");
+        System.out.println("2: No");
+        System.out.println();
+    }
+    public void printAcceptAndRejectMenu(String prompt) {
+        System.out.println();
+        System.out.println(prompt);
+        System.out.println("1: Accept");
+        System.out.println("2: Reject");
+        System.out.println();
+    }
 
     public void printTransferMenu(){
 
     }
     public void printInvalidSelection(){
         System.out.println("Invalid Selection");
+        pause();
     }
 
     public UserCredentials promptForCredentials() {

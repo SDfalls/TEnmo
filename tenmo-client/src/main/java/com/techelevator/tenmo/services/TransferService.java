@@ -37,7 +37,7 @@ public class TransferService {
             System.out.println("Error getting transfers: " + e.getMessage());
         }
         if (transfersList.size()==0){
-            System.out.println("Uh oh, it looks like you have not made any transfer transactions");
+            System.out.println("Uh oh, it looks like you have not made any transfer transactions yet");
         }
         return transfersList;
     }
