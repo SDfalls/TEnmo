@@ -88,6 +88,9 @@ public class App {
                 sendBucks();
             } else if (menuSelection == 5) {
                 requestBucks();
+            } else if (menuSelection== 6) {
+                getTransferByTransferID();
+
             } else if (menuSelection == 0) {
                 continue;
             } else {
@@ -95,6 +98,19 @@ public class App {
             }
             consoleService.pause();
         }
+    }
+
+    private void getTransferByTransferID() {
+        int transferId = consoleService.promptForInt("Enter Transfer ID: ");
+        List<Transfer> transfers = new ArrayList<>();
+        Transfer transfer = transfersService.getTransferById(transferId);
+//        TableGenerator tableGenerator = new TableGenerator();
+//        tableGenerator.transferTableGenerator(transfers,currentUserAccount);
+
+        System.out.println("Transfer ID:" + transfer.getTransfer_id() + " From : " + transfer.getAccount_from()
+        + "To: " + transfer.getAccount_to() + "Amount: " + transfer.getAmount());
+
+
     }
 
     private void updateRequestsMenu(Map<Integer,Transfer> transfers) {

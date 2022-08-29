@@ -48,7 +48,7 @@ public class TransferService {
 //        transfersbyAccount = List.of(restTemplate.exchange(BASE_URL + "transfer/" + accountId, HttpMethod.GET, makeAuthEntity(), Transfer[].class).getBody());
 //        return
         try {
-            Transfer[] transfers = restTemplate.exchange(BASE_URL + "/transfer/" + accountId, HttpMethod.GET, makeAuthEntity(), Transfer[].class).getBody();
+            Transfer[] transfers = restTemplate.exchange(BASE_URL + "/transfer/account/" + accountId, HttpMethod.GET, makeAuthEntity(), Transfer[].class).getBody();
             transfersbyAccount = Arrays.asList(transfers);
         } catch (RestClientResponseException e) {
             System.out.println("Error getting transfers: " + e.getMessage());
@@ -57,6 +57,20 @@ public class TransferService {
             System.out.println("Uh oh, it looks like you have not made any transfer transactions");
         }
         return transfersbyAccount;
+    }
+
+    public Transfer getTransferById(int TransferId) {
+        Transfer transfer = new Transfer();
+        try {
+            transfer = restTemplate.exchange(BASE_URL + "/transfer/" + TransferId, HttpMethod.GET, makeAuthEntity(), Transfer.class).getBody();
+        } catch (RestClientResponseException e) {
+            System.out.println("Error getting transfers: " + e.getMessage());
+        }
+        if (transfer == null) {
+            System.out.println("Transfer could not be found, please verify you entered the right ID");
+        }
+        return transfer;
+
     }
     public int createTransferTransaction(int accountFromId, int accountToId, BigDecimal amount, String type, String status) {
         int transferNumber = 0;

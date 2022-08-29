@@ -10,6 +10,7 @@ public interface TransferDao {
    public List<Transfer> getAllTransfers();
 
    public List<Transfer> getAllTransfersByAccountId(int accountId);
+   public Transfer getTransferByID(int Id);
 
 
     void updateStatus(int transferId, int transferStatus);

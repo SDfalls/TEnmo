@@ -47,7 +47,7 @@ public int createTransfer(@RequestBody Transfer transfer ){
         return transferDao.getAllTransfers();
     }
 
-    @RequestMapping(path = "/{id}", method = RequestMethod.GET)
+    @RequestMapping(path = "/account/{id}", method = RequestMethod.GET)
     public List<Transfer>ListAllTransfersByID(@PathVariable int id){
         return transferDao.getAllTransfersByAccountId(id);
     }
@@ -58,6 +58,11 @@ public int createTransfer(@RequestBody Transfer transfer ){
     @RequestMapping(path = "updateBalance", method = RequestMethod.PUT)
     public void updateBalance(@RequestParam BigDecimal newBalance, int accountId) {
         accountDao.updateBalance(newBalance,accountId);
+    }
+
+    @RequestMapping(path = "/transfer/{id}", method = RequestMethod.GET)
+    public Transfer getTransferById(@RequestParam int Id) {
+        return transferDao.getTransferByID(Id);
     }
 
 
