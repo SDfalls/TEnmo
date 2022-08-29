@@ -5,6 +5,7 @@ import com.techelevator.tenmo.services.AccountService;
 import com.techelevator.tenmo.services.AuthenticationService;
 import com.techelevator.tenmo.services.ConsoleService;
 import com.techelevator.tenmo.services.TransferService;
+import com.techelevator.util.TableGenerator;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -98,14 +99,14 @@ public class App {
 
     private void updateRequestsMenu(Map<Integer,Transfer> transfers) {
         int menuSelection = -1;
-        while (menuSelection!=0) {
+        while (menuSelection!=2) {
             consoleService.printYesAndNoMenu("Would you like to update any request?");
             menuSelection = consoleService.promptForInt("Please choose an option: ");
             if (menuSelection == 1 ) {
                 int transferToUpdate = consoleService.promptForInt("Please choose a transfer from the list: ");
-                if(transfers.get(transferToUpdate)!=null) {
+                if (transfers.get(transferToUpdate) != null) {
                     consoleService.printAcceptAndRejectMenu("Would you like to accept or reject this transaction?");
-                    int acceptOrReject = consoleService.promptForInt("Please choose an option");
+                    int acceptOrReject = consoleService.promptForInt("Please choose an option: ");
 
                     String transferStatus = "";
 
@@ -118,25 +119,29 @@ public class App {
                     }
                     if (!transferStatus.isEmpty()) {
                         Transfer transfer = transfers.get(transferToUpdate);
-                        if (transfer.getAmount().compareTo(currentUserAccount.getBalance())<=0&&transferStatus.equals("Approved")) {
+                        if (transfer.getAmount().compareTo(currentUserAccount.getBalance()) <= 0 && transferStatus.equals("Approved")) {
                             transfersService.updateTransferStatus(transfer.getTransfer_id(), transferStatus);
                             System.out.println("Transaction completed! Transfer has been " + transferStatus + " successfully");
-                        }else if(transferStatus.equals("Rejected")){
+                        } else if (transferStatus.equals("Rejected")) {
                             transfersService.updateTransferStatus(transfer.getTransfer_id(), transferStatus);
                             System.out.println("Transaction completed! Transfer has been " + transferStatus + " successfully");
-                        }else{
+                        } else {
                             System.out.println("I am sorry but your funds are insufficient to accept this transfer");
                         }
-                    } else if (menuSelection==2) {
-                        System.out.println("No requests will be updated now.");
-                    }
-                    else {
-                        consoleService.printInvalidSelection();
                     }
                 }
+            } else if (menuSelection==2) {
+                System.out.println("No requests will be updated now.");
+            } else {
+                consoleService.printInvalidSelection();
+
             }
         }
+
     }
+
+
+
 
 
 
@@ -154,21 +159,27 @@ public class App {
         //ADD view by transfer Id
 
         List<Transfer> transfersList = transfersService.getTransfersByAccountId(currentUserAccount.getAccountId());
+        List<Transfer> actualTransfers = new ArrayList<>();
         for (Transfer transfers : transfersList) {
-            String output = "";
+//            String output = "";
             if (transfers.getAccount_from()==currentUserAccount.getAccountId()&& transfers.getTransfer_status_id()!=1) {
-                output += "Transfer ID: " + transfers.getTransfer_id();
-                output += " To: "
-                        + accountService.getUserById(accountService.getAccountById((transfers.getAccount_to())).getUserId()).getUsername();
+//                output += "Transfer ID: " + transfers.getTransfer_id();
+//                output += " To: "
+//                        + accountService.getUserById(accountService.getAccountById((transfers.getAccount_to())).getUserId()).getUsername();
+                actualTransfers.add(transfers);
             } else if (transfers.getAccount_to()==currentUserAccount.getAccountId()){
-                output += "Transfer ID: " + transfers.getTransfer_id();
-                output += " From: " + accountService.getUserById(accountService.getAccountById((transfers.getAccount_from())).getUserId()).getUsername();
+//                output += "Transfer ID: " + transfers.getTransfer_id();
+//                output += " From: " + accountService.getUserById(accountService.getAccountById((transfers.getAccount_from())).getUserId()).getUsername();
+                actualTransfers.add(transfers);
             }else{
                 continue;
             }
-            output += " Amount: $" + transfers.getAmount();
-            System.out.println(output);
+//            output += " Amount: $" + transfers.getAmount();
+//            System.out.println(output);
+
         }
+        TableGenerator tableGenerator = new TableGenerator();
+        tableGenerator.transferTableGenerator(actualTransfers,currentUserAccount);
     }
 
     private void viewPendingRequests() {
@@ -187,10 +198,13 @@ public class App {
                 continue;
             }
             output += " Amount: $" + transfers.getAmount();
-            System.out.println(output);
+//            System.out.println(output);
             pendingRequests.put(i,transfers);
             i++;
         }
+        TableGenerator tableGenerator = new TableGenerator();
+        List<Transfer> newList = new ArrayList<>(pendingRequests.values());
+        tableGenerator.transferTableGenerator(newList,currentUserAccount);
         if(pendingRequests.size()>0) {
             updateRequestsMenu(pendingRequests);
         }else{
@@ -229,7 +243,7 @@ public class App {
                 BigDecimal receiverNewBalance = accountToTransfer.getBalance().add(amountToTransfer);
                 BigDecimal senderNewBalance = currentUserAccount.getBalance().subtract(amountToTransfer);
                 //Changing the balance of the current user locally, this will prevent them from going over their balance to transfer while the app is open.
-                accountToTransfer.setBalance(senderNewBalance);
+                currentUserAccount.setBalance(senderNewBalance);
                 this.transfersService.changeAccountBalance(senderNewBalance, currentUserAccount.getAccountId());
 
                 this.transfersService.changeAccountBalance(receiverNewBalance, accountToTransfer.getAccountId());
