@@ -104,11 +104,16 @@ public class App {
         int transferId = consoleService.promptForInt("Enter Transfer ID: ");
         List<Transfer> transfers = new ArrayList<>();
         Transfer transfer = transfersService.getTransferById(transferId);
-//        TableGenerator tableGenerator = new TableGenerator();
-//        tableGenerator.transferTableGenerator(transfers,currentUserAccount);
+        if (transfer.getAccount_to()==currentUserAccount.getAccountId()||transfer.getAccount_from()==currentUserAccount.getAccountId()){
+            TableGenerator tableGenerator = new TableGenerator();
+            tableGenerator.transferTableGenerator(transfers,currentUserAccount);
+        }else {
+            System.out.println("You can only see transfers that you have sent/received");
+        }
 
-        System.out.println("Transfer ID:" + transfer.getTransfer_id() + " From : " + transfer.getAccount_from()
-        + "To: " + transfer.getAccount_to() + "Amount: " + transfer.getAmount());
+//
+//        System.out.println("Transfer ID:" + transfer.getTransfer_id() + " From : " + transfer.getAccount_from()
+//        + "To: " + transfer.getAccount_to() + "Amount: " + transfer.getAmount());
 
 
     }

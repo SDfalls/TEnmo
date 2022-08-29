@@ -62,7 +62,7 @@ public class TransferService {
     public Transfer getTransferById(int TransferId) {
         Transfer transfer = new Transfer();
         try {
-            transfer = restTemplate.exchange(BASE_URL + "/transfer/" + TransferId, HttpMethod.GET, makeAuthEntity(), Transfer.class).getBody();
+            transfer = restTemplate.exchange(BASE_URL + "/transfer/transfer?Id=" + TransferId, HttpMethod.GET, makeAuthEntity(), Transfer.class).getBody();
         } catch (RestClientResponseException e) {
             System.out.println("Error getting transfers: " + e.getMessage());
         }

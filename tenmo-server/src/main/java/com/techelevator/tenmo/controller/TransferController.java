@@ -60,7 +60,7 @@ public int createTransfer(@RequestBody Transfer transfer ){
         accountDao.updateBalance(newBalance,accountId);
     }
 
-    @RequestMapping(path = "/transfer/{id}", method = RequestMethod.GET)
+    @RequestMapping(path = "/transfer", method = RequestMethod.GET)
     public Transfer getTransferById(@RequestParam int Id) {
         return transferDao.getTransferByID(Id);
     }
