@@ -2,6 +2,8 @@ package com.techelevator.util;
 
 import com.techelevator.tenmo.model.Account;
 import com.techelevator.tenmo.model.Transfer;
+import com.techelevator.tenmo.model.User;
+import com.techelevator.tenmo.services.AccountService;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -162,7 +164,7 @@ public class TableGenerator {
         stringBuilder.append(TABLE_V_SPLIT_SYMBOL);
 
     }
-    public void transferTableGenerator(List<Transfer> transfers, Account account) {
+    public void transferTableGenerator(List<Transfer> transfers, Account account, AccountService accountService) {
         List<String> headers = new ArrayList<>();
         headers.add("#");
         headers.add("Transfer ID");
@@ -178,12 +180,14 @@ public class TableGenerator {
             row.add(Integer.toString(i));
             row.add(Integer.toString(transfer.getTransfer_id()));
             if (account.getAccountId()==transfer.getAccount_from()) {
-                row.add("To: "+ transfer.getAccount_to());
+                String username = accountService.getUserById(accountService.getAccountById(transfer.getAccount_to()).getUserId()).getUsername();
+                row.add("To: "+ username);
             }
             if (account.getAccountId()==transfer.getAccount_to()) {
-                row.add("From: " + transfer.getAccount_from());
+                String username = accountService.getUserById(accountService.getAccountById(transfer.getAccount_from()).getUserId()).getUsername();
+                row.add("From: " + username);
             }
-            row.add(transfer.getAmount().toString());
+            row.add("$"+transfer.getAmount().toString());
 
             rows.add(row);
             i++;

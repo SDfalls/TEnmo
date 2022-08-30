@@ -106,7 +106,7 @@ public class App {
         Transfer transfer = transfersService.getTransferById(transferId);
         if (transfer.getAccount_to()==currentUserAccount.getAccountId()||transfer.getAccount_from()==currentUserAccount.getAccountId()){
             TableGenerator tableGenerator = new TableGenerator();
-            tableGenerator.transferTableGenerator(transfers,currentUserAccount);
+            tableGenerator.transferTableGenerator(transfers,currentUserAccount, accountService);
         }else {
             System.out.println("You can only see transfers that you have sent/received");
         }
@@ -200,7 +200,7 @@ public class App {
 
         }
         TableGenerator tableGenerator = new TableGenerator();
-        tableGenerator.transferTableGenerator(actualTransfers,currentUserAccount);
+        tableGenerator.transferTableGenerator(actualTransfers,currentUserAccount, accountService);
     }
 
     private void viewPendingRequests() {
@@ -225,7 +225,7 @@ public class App {
         }
         TableGenerator tableGenerator = new TableGenerator();
         List<Transfer> newList = new ArrayList<>(pendingRequests.values());
-        tableGenerator.transferTableGenerator(newList,currentUserAccount);
+        tableGenerator.transferTableGenerator(newList,currentUserAccount, accountService);
         if(pendingRequests.size()>0) {
             updateRequestsMenu(pendingRequests);
         }else{
